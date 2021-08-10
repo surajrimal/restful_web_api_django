@@ -1,5 +1,6 @@
+from rest_framework import response
 from rest_framework.exceptions import ValidationError
-from rest_framework.generics import ListAPIView, CreateAPIView, DestroyAPIView
+from rest_framework.generics import ListAPIView, CreateAPIView, RetrieveUpdateDestroyAPIView
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter
 from rest_framework.pagination import LimitOffsetPagination
@@ -46,14 +47,27 @@ class ProductCreate(CreateAPIView):
         return super().create(request, *args, **kwargs)
 
 
-class ProductDestroy(DestroyAPIView):
+class ProductRetrieveUpdateDestroy(RetrieveUpdateDestroyAPIView):
     queryset = Product.objects.all()
     lookup_field = 'id'
+    serializer_class = ProductSerializer
     #free cache memory
     def delete(self, request, *args, **kwargs):
         product_id = request.data.get('id')
         response = super().delete(self, request, *args, **kwargs)
         if response.status_code ==204:
             from django.core.cache import cache
-            cache.delete('priduct_data_{}'.format(product_id))
+            cache.delete('product_data_{}'.format(product_id))
+        return response
+
+    def update(self, request, *args, **kwargs):
+        return super().update(request, *args, **kwargs)
+        if response.status_code ==200:
+            from django.core.cache import cache
+            product = response.data
+            cache.set('product_data_{}'.format(product['id']),{
+                'name': product['name'],
+                'description': product['description'],
+                'price': product['price'],
+            })
         return response
