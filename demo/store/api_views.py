@@ -16,7 +16,7 @@ class ProductList(ListAPIView):
     serializer_class = ProductSerializer
     filter_backends = (DjangoFilterBackend, SearchFilter)
     filter_fields = ('id',)
-    serach_fields = ('name', 'description',)
+    search_fields = ('name', 'description')
     pagination_class = ProductsPagination
 
     def get_queryset(self):
@@ -40,7 +40,7 @@ class ProductCreate(CreateAPIView):
         try:
             price = request.data.get('price')
             if price is not None and float(price) <= 0.0:
-                raise ValidationError({ 'price': 'Must be above $0.00'})
+                raise ValidationError({ 'price': 'Must be above $0.00' })
         except ValueError:
-            raise ValidationError({ 'price': 'A valid number is required'})
+            raise ValidationError({ 'price': 'A valid number is required' })
         return super().create(request, *args, **kwargs)
